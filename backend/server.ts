@@ -61,7 +61,7 @@ async function startServer() {
         return;
       }
 
-      if (!isProduction && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      if (!isProduction) {
         callback(null, true);
         return;
       }

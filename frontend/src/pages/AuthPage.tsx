@@ -145,9 +145,9 @@ export default function AuthPage() {
       if (err.response?.status === 423 && responseData?.lockUntil) {
         const remainingMs = new Date(responseData.lockUntil).getTime() - Date.now();
         setLockCountdown(Math.ceil(remainingMs / 1000));
-        setServerError(responseData.error || 'Account is temporarily locked.');
+        setServerError(responseData.error || responseData.message || 'Account is temporarily locked.');
       } else {
-        setServerError(responseData?.error || 'Invalid credentials. Please try again.');
+        setServerError(responseData?.error || responseData?.message || 'Invalid credentials. Please try again.');
       }
     } finally {
       setIsSubmitting(false);
@@ -162,7 +162,7 @@ export default function AuthPage() {
       navigate('/dashboard');
     } catch (err: any) {
       const responseData = err.response?.data;
-      setServerError(responseData?.error || 'Registration failed. Please try a different email.');
+      setServerError(responseData?.error || responseData?.message || 'Registration failed. Please try a different email.');
     } finally {
       setIsSubmitting(false);
     }
