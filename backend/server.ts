@@ -54,27 +54,32 @@ async function startServer() {
   app.use(helmet({
     contentSecurityPolicy: isProduction ? undefined : false,
   }));
-  app.use(cors({
-    origin(origin, callback) {
+
+  const corsOptions = {
+    origin(origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
       if (!origin) {
         callback(null, true);
         return;
       }
 
-      if (!isProduction) {
+      if (!isProduction || allowedOrigins.includes(origin)) {
         callback(null, true);
         return;
       }
 
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-        return;
-      }
-
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error(`Not allowed by CORS: ${origin}`));
     },
     credentials: true,
-  }));
+    optionsSuccessStatus: 200,
+  };
+
+  if (isProduction && allowedOrigins.length === 0) {
+    logger.warn('CORS origin whitelist is empty in production. Set FRONTEND_URL or CORS_ORIGINS to allow your Vercel frontend origin.');
+  }
+  logger.info(`Allowed CORS origins: ${allowedOrigins.length > 0 ? allowedOrigins.join(', ') : 'none configured'}`);
+
+  app.use(cors(corsOptions));
+  app.options('*', cors(corsOptions));
   app.use(express.json({ limit: '10kb' })); // Prevents oversized payloads
   app.use(cookieParser());
   app.use(mongoSanitize()); // Prevent NoSQL Injection attacks
